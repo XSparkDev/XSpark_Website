@@ -816,7 +816,6 @@ section {scroll-margin-top: 90px; max-width:100%;}
   .contact-card{width:100%}
   .panel-form-inner .f-row, .chat-form .f-row{grid-template-columns:1fr}
   .f-cert-logos{justify-content:flex-start;align-items:center}
-  .logo-belt-label{display:none}
   .logo-track{padding-left:24px}
   .logo-belt::before{width:40px}
 }
@@ -839,7 +838,7 @@ section {scroll-margin-top: 90px; max-width:100%;}
   .footer-inner{flex-direction:column;align-items:flex-start;row-gap:12px;column-gap:16px}
   .f-certs-right{padding-bottom:26px}
   .f-nav{gap:10px 14px}
-  .f-logo img{height:27.7px !important;width:101.89px !important;object-fit:cover !important;object-position:center 41% !important}
+  .f-logo img{height:27.7px !important;width:101.89px !important;object-fit:cover !important;object-position:center 41% !important;transform:scale(3);transform-origin:left bottom}
   .f-cert-logo{height:38px;max-width:120px}
   .contact-panels{max-width:100%}
 }
@@ -1702,9 +1701,9 @@ html[data-theme="light"] #floating-iso img{filter:none;opacity:.7}
 #floating-iso.is-visible{opacity:1;transform:translate3d(var(--iso-x,0px),var(--iso-y,0px),0) scale(1);pointer-events:none;visibility:visible;transition:opacity .08s ease,visibility 0s linear 0s}
 body.chat-open #floating-iso{opacity:0;visibility:hidden;transition:opacity .12s ease,visibility 0s linear .12s}
 @media(max-width:768px){
+  .logo-belt{visibility:visible !important}
   .logo-track{gap:20px;padding-left:24px}
   .logo-belt::before{width:40px}.logo-belt::after{width:60px}
-  .logo-belt-label{display:none}
   .logo-slot{height:40px}
   .logo-belt img{max-height:28px}
   .logo-slot[data-logo="atns"]{width:56px}.logo-slot[data-logo="oracle"]{width:84px}.logo-slot[data-logo="suse"]{width:88px}.logo-slot[data-logo="baurik"]{width:84px}.logo-slot[data-logo="discovery"]{width:68px}.logo-slot[data-logo="absa"]{width:54px}.logo-slot[data-logo="investec"]{width:112px}.logo-slot[data-logo="ktc"]{width:54px}.logo-slot[data-logo="purplebee"]{width:92px}.logo-slot[data-logo="microsoft"]{width:92px}.logo-slot[data-logo="ecdc"]{width:62px}.logo-slot[data-logo="e4"]{width:54px}.logo-slot[data-logo="samsung"]{width:112px}.logo-slot[data-logo="seda"]{width:72px}.logo-slot[data-logo="saab"]{width:60px}.logo-slot[data-logo="tushiyah"]{width:92px}
@@ -3566,13 +3565,19 @@ const fcSend = document.getElementById('fc-send');
 fcSend && fcSend.addEventListener('click', ()=> handleFcSend());
 fcInput && fcInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); handleFcSend(); } });
 
-// Hide the FAB while the contact section is on screen — it already has the full chat
+// Hide the FAB while the contact section is on screen — it already has the full chat.
+// On mobile also hide it when the footer badge row is visible, so it never covers the docked ISO.
 const contactSec = document.getElementById('contact');
-new IntersectionObserver(([e])=>{
-  floatChat.style.opacity = e.isIntersecting ? '0' : '1';
-  floatChat.style.pointerEvents = e.isIntersecting ? 'none' : '';
-  if(e.isIntersecting) setFC(false);
-}, {threshold:.4}).observe(contactSec);
+const footerCertRow = document.querySelector('.f-certs-right');
+let contactVisible = false, footerRowVisible = false;
+function updateFabVisibility(){
+  var hide = contactVisible || ((window.innerWidth <= 768) && footerRowVisible);
+  floatChat.style.opacity = hide ? '0' : '1';
+  floatChat.style.pointerEvents = hide ? 'none' : '';
+  if(hide) setFC(false);
+}
+new IntersectionObserver(([e])=>{ contactVisible = e.isIntersecting; updateFabVisibility(); }, {threshold:.4}).observe(contactSec);
+if(footerCertRow) new IntersectionObserver(([e])=>{ footerRowVisible = e.isIntersecting; updateFabVisibility(); }, {threshold:.4}).observe(footerCertRow);
 floatChat.style.transition = 'opacity .35s ease';
 
 })();
@@ -4186,7 +4191,23 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   if(closeBtn) closeBtn.addEventListener('click', close);
 
   overlay.querySelectorAll('.nav-ov-link,.nav-ov-cta').forEach(function(a){
-    a.addEventListener('click', function(){ close(); });
+    a.addEventListener('click', function(){
+      var href = this.getAttribute('href') || '';
+      close();
+      // Navigate to the target after the menu's scroll-lock is released.
+      requestAnimationFrame(function(){
+        setTimeout(function(){
+          var target = href.charAt(0) === '#' && href.length > 1 ? document.querySelector(href) : null;
+          if (target) {
+            var navH = document.querySelector('.nav')?.offsetHeight || 80;
+            var top = target.getBoundingClientRect().top + window.pageYOffset - navH - 8;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+          } else if (href === '#' || !target) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }, 30);
+      });
+    });
   });
 
   document.addEventListener('keydown', function(e){
