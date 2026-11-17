@@ -700,7 +700,7 @@ html[data-theme="light"] .f-cert-logo{filter:none;background:#ffffff;border-colo
 .f-certs-right{position:static;width:100%;flex:0 0 100%;display:flex;justify-content:flex-end;padding-bottom:12px}
 .f-cert-pair{display:flex;align-items:center;gap:20px}
 .f-cert-jse-wrap{position:relative;display:flex;align-items:center}
-.f-cert-jse-wrap .f-tagline{position:absolute;top:calc(100% + 6px);right:0;margin:0;text-align:right;white-space:nowrap}
+.f-cert-jse-wrap .f-tagline{position:absolute;top:calc(100% + 6px);right:0;margin:0;text-align:right;white-space:nowrap;cursor:default;user-select:none}
 #iso-dock-slot{width:140px;height:75px;flex:0 0 140px}
 .f-cert-jse{background:transparent;border-color:transparent;box-shadow:none;filter:invert(1);opacity:.7}
 html[data-theme="light"] .f-cert-jse{background:transparent;border-color:transparent;box-shadow:none;filter:none;opacity:.75}
@@ -3463,6 +3463,19 @@ chatForm && chatForm.addEventListener('submit', async e=>{
     if(btn) btn.disabled = false;
   }
 });
+
+/* ── Hidden staff inbox: triple-click the footer caption ─────── */
+(function(){
+  const el = document.querySelector('.f-cert-jse-wrap .f-tagline');
+  if(!el) return;
+  let count = 0, timer = null;
+  el.addEventListener('click', function(){
+    count++;
+    clearTimeout(timer);
+    if(count >= 3){ count = 0; window.location.href = 'admin.html'; return; }
+    timer = setTimeout(function(){ count = 0; }, 600);
+  });
+})();
 
 /* ── Contact form ─────────────────────────────────────────────── */
 const contactForm = document.getElementById('contact-form');
