@@ -1,6 +1,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>try{if(localStorage.getItem('xs-theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<script>
+/* Copy protection: allowed on preview (localhost / file / ?preview=1), blocked on the live site. */
+(function(){
+  try{
+    var h=(location.hostname||'').toLowerCase();
+    var preview = h==='localhost' || h==='127.0.0.1' || h==='' || /[?&]preview=1(?:&|$)/.test(location.search);
+    if(!preview) document.documentElement.classList.add('no-copy');
+  }catch(e){}
+})();
+</script>
+<style>
+html.no-copy,html.no-copy *{-webkit-user-select:none !important;-moz-user-select:none !important;-ms-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important}
+html.no-copy input,html.no-copy textarea,html.no-copy [contenteditable="true"]{-webkit-user-select:text !important;user-select:text !important}
+</style>
 <title>X Spark | AI-First Software Engineering & Digital Innovation</title>
 <meta name="description" content="X Spark engineers intelligent software, AI-powered solutions, cloud infrastructure, and integrated security to help businesses solve complex challenges and move forward.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -3625,6 +3639,21 @@ if(footerEl) new IntersectionObserver(([e])=>{ footerVisible = e.isIntersecting;
 window.addEventListener('resize', updateFabVisibility, {passive:true});
 if(window.innerWidth > 560) floatChat.style.transition = 'opacity .35s ease';
 
+})();
+
+/* ── Copy protection (live site only) ────────────────────────── */
+(function(){
+  if(!document.documentElement.classList.contains('no-copy')) return;
+  var editable = function(t){
+    return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+  };
+  ['copy','cut','selectstart','contextmenu','dragstart'].forEach(function(type){
+    document.addEventListener(type, function(e){
+      if(editable(e.target)) return;
+      e.preventDefault();
+      if(e.clipboardData) e.clipboardData.setData('text/plain','');
+    }, {passive:false});
+  });
 })();
 
 // Smooth scroll with offset for fixed nav
