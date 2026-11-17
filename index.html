@@ -2717,6 +2717,26 @@ html{scroll-padding-top:100px}
 (function(){
 'use strict';
 
+/* ── Supabase: persist contact / chat submissions ────────────── */
+const SB_URL = 'https://cuknbcwsoukculgnbqwb.supabase.co';
+const SB_PUBLISHABLE_KEY = 'sb_publishable_xAAMH39bUOCg_IIIB2NEoA_6uEg-BpL';
+async function saveMessage(record){
+  const res = await fetch(SB_URL + '/rest/v1/contact_messages', {
+    method: 'POST',
+    headers: {
+      'apikey': SB_PUBLISHABLE_KEY,
+      'Authorization': 'Bearer ' + SB_PUBLISHABLE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(record)
+  });
+  if(!res.ok){
+    let detail = '';
+    try { detail = (await res.json()).message || ''; } catch(e){}
+    throw new Error(detail || ('Save failed (' + res.status + ')'));
+  }
+}
+
 /* ── Snow canvas ──────────────────────────────────────────────── */
 const canvas = document.getElementById('snow');
 const ctx    = canvas.getContext('2d');
@@ -3426,26 +3446,45 @@ botInput && botInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e
 
 /* ── Chat form ────────────────────────────────────────────────── */
 const chatForm = document.getElementById('chat-form');
-chatForm && chatForm.addEventListener('submit', e=>{
+chatForm && chatForm.addEventListener('submit', async e=>{
   e.preventDefault();
   const name = document.getElementById('chat-name').value.trim();
   const email = document.getElementById('chat-email').value.trim();
   const msg   = document.getElementById('chat-msg').value.trim();
   if(!name || !email || !msg) return;
-  chatForm.style.display = 'none';
-  document.getElementById('chat-success').classList.add('show');
+  const btn = chatForm.querySelector('button[type="submit"]');
+  if(btn) btn.disabled = true;
+  try{
+    await saveMessage({ name, email, message: msg, source: 'chat' });
+    chatForm.style.display = 'none';
+    document.getElementById('chat-success').classList.add('show');
+  }catch(err){
+    window.alert('Sorry, we could not send your message. Please try again.');
+    if(btn) btn.disabled = false;
+  }
 });
 
 /* ── Contact form ─────────────────────────────────────────────── */
 const contactForm = document.getElementById('contact-form');
-contactForm && contactForm.addEventListener('submit', e=>{
+contactForm && contactForm.addEventListener('submit', async e=>{
   e.preventDefault();
-  const name  = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const msg   = document.getElementById('f-message').value.trim();
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const company = document.getElementById('f-company').value.trim();
+  const type    = document.getElementById('f-type').value.trim();
+  const budget  = document.getElementById('f-budget').value.trim();
+  const msg     = document.getElementById('f-message').value.trim();
   if(!name || !email || !msg) return;
-  contactForm.style.display = 'none';
-  document.getElementById('form-success').classList.add('show');
+  const btn = contactForm.querySelector('button[type="submit"]');
+  if(btn) btn.disabled = true;
+  try{
+    await saveMessage({ name, email, company, project_type: type, budget, message: msg, source: 'contact' });
+    contactForm.style.display = 'none';
+    document.getElementById('form-success').classList.add('show');
+  }catch(err){
+    window.alert('Sorry, we could not send your message. Please try again.');
+    if(btn) btn.disabled = false;
+  }
 });
 
 /* ── Floating chat widget ─────────────────────────────────────── */

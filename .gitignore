@@ -4,3 +4,5 @@ backups/
 .DS_Store
 
 .env.bakfix
+
+supabase/.temp/
