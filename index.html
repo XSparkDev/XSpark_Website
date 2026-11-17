@@ -821,14 +821,23 @@ section {scroll-margin-top: 90px; max-width:100%;}
 }
 
 @media(max-width:560px){
-  .nav{padding:8px 12px 0}
-  .logo img{height:64px !important;width:auto !important}
-  .hero-content{padding:92px 14px 76px}
-  .hero-h1{font-size:clamp(1.7rem,9vw,2.4rem)}
-  .hero-body{font-size:.98rem;line-height:1.65}
-  .slide-dots{left:14px;bottom:96px}
+  /* First screen: hero + belt share one 100svh column, belt naturally measured */
+  .first-screen{display:flex;flex-direction:column;min-height:100vh;min-height:100svh;height:100vh;height:100svh}
+  @supports (height:100dvh){ .first-screen{min-height:100dvh;height:100dvh} }
+  .first-screen .hero{flex:1 1 auto;min-height:0;margin-bottom:0;padding-bottom:24px;justify-content:center}
+  .first-screen .logo-belt{flex:0 0 auto}
+  .nav{padding:8px 12px 0;gap:12px}
+  .logo img{height:64px !important;width:auto !important;margin-top:0 !important;transform:scale(2.5);transform-origin:left center}
+  .hero-content{padding:92px 14px 16px;gap:14px}
+  .hero-left{gap:10px}
+  .hero-h1{font-size:clamp(1.7rem,9vw,2.4rem);margin-bottom:0}
+  .hero-body{font-size:.98rem;line-height:1.6;margin-bottom:4px}
+  .hero-cta{padding:11px 20px}
+  .hero-chips{gap:8px;padding-top:0}
+  .chip{padding:10px 12px;font-size:.82rem}
+  .slide-dots{left:14px;bottom:12px}
   .dot-item{width:18px}.dot-item.active{width:28px}
-  .scroll-hint{bottom:74px;font-size:.62rem}
+  .scroll-hint{bottom:24px;font-size:.62rem}
   .mouse{height:30px;width:20px}
   .mission{padding:20px 14px 56px;margin-top:-24px}
   .services,.cases,.contact-section{padding-left:14px;padding-right:14px}
@@ -841,6 +850,26 @@ section {scroll-margin-top: 90px; max-width:100%;}
   .f-logo img{height:27.7px !important;width:101.89px !important;object-fit:cover !important;object-position:center 41% !important;transform:scale(3);transform-origin:left bottom}
   .f-cert-logo{height:38px;max-width:120px}
   .contact-panels{max-width:100%}
+  /* Chat launcher hidden at the contact section / footer on mobile */
+  #float-chat{transition:opacity .2s ease,visibility 0s linear .2s}
+  #float-chat.mob-hidden{opacity:0;visibility:hidden;pointer-events:none}
+  #float-chat.mob-hidden .fc-fab{pointer-events:none}
+}
+
+@media(max-width:360px){
+  .logo img{transform:scale(2.2)}
+}
+
+@media(max-width:560px) and (max-height:660px){
+  .hero-content{padding-top:76px;padding-bottom:10px;gap:10px}
+  .hero-h1{font-size:clamp(1.5rem,7.6vw,2rem)}
+  .hero-body{font-size:.9rem;line-height:1.5;margin-bottom:2px}
+  .hero-cta{padding:9px 16px;font-size:.88rem}
+  .hero-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .chip{padding:8px 9px;font-size:.72rem;gap:7px}
+  .chip svg{width:16px;height:16px}
+  .chip-label{font-size:.7rem}
+  .chip span[style*="margin-left"]{display:none}
 }
 
 @media(max-width:380px){
@@ -2016,6 +2045,7 @@ html{scroll-padding-top:100px}
 </div>
 
 <!-- ═══════════════════════════════ HERO ═══════════════════════════ -->
+<div class="first-screen">
 <section class="hero" id="hero">
 
   <!-- 4-image ken-burns crossfade -->
@@ -2145,6 +2175,7 @@ html{scroll-padding-top:100px}
     <span class="logo-slot" data-logo="tushiyah"><img src="images/clients/tushiyah.png" alt="" loading="lazy"></span>
   </div>
 </div>
+</div><!-- /first-screen -->
 
 <!-- ═══════════════════════════════ MISSION ════════════════════════ -->
 <section class="mission" id="about">
@@ -3565,20 +3596,34 @@ const fcSend = document.getElementById('fc-send');
 fcSend && fcSend.addEventListener('click', ()=> handleFcSend());
 fcInput && fcInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); handleFcSend(); } });
 
-// Hide the FAB while the contact section is on screen — it already has the full chat.
-// On mobile also hide it when the footer badge row is visible, so it never covers the docked ISO.
+// Hide the FAB while the contact section (and, on mobile, the footer) is on screen.
+// Desktop/tablet keep the original inline-opacity behaviour; mobile uses a fading class
+// that also applies visibility:hidden + pointer-events:none. An open chat panel is never hidden.
 const contactSec = document.getElementById('contact');
 const footerCertRow = document.querySelector('.f-certs-right');
-let contactVisible = false, footerRowVisible = false;
+const footerEl = document.querySelector('.footer');
+let contactVisible = false, footerRowVisible = false, footerVisible = false;
 function updateFabVisibility(){
-  var hide = contactVisible || ((window.innerWidth <= 768) && footerRowVisible);
-  floatChat.style.opacity = hide ? '0' : '1';
-  floatChat.style.pointerEvents = hide ? 'none' : '';
-  if(hide) setFC(false);
+  var mobile = window.innerWidth <= 560;
+  var inLowerArea = contactVisible || footerRowVisible || footerVisible;
+  if(fcPanel.classList.contains('open')) inLowerArea = false;
+  if(mobile){
+    floatChat.style.opacity = '';
+    floatChat.style.pointerEvents = '';
+    floatChat.style.transition = '';
+    floatChat.classList.toggle('mob-hidden', inLowerArea);
+  } else {
+    floatChat.classList.remove('mob-hidden');
+    var hideDesktop = contactVisible || ((window.innerWidth <= 768) && footerRowVisible);
+    floatChat.style.opacity = hideDesktop ? '0' : '1';
+    floatChat.style.pointerEvents = hideDesktop ? 'none' : '';
+  }
 }
 new IntersectionObserver(([e])=>{ contactVisible = e.isIntersecting; updateFabVisibility(); }, {threshold:.4}).observe(contactSec);
 if(footerCertRow) new IntersectionObserver(([e])=>{ footerRowVisible = e.isIntersecting; updateFabVisibility(); }, {threshold:.4}).observe(footerCertRow);
-floatChat.style.transition = 'opacity .35s ease';
+if(footerEl) new IntersectionObserver(([e])=>{ footerVisible = e.isIntersecting; updateFabVisibility(); }, {threshold:.15}).observe(footerEl);
+window.addEventListener('resize', updateFabVisibility, {passive:true});
+if(window.innerWidth > 560) floatChat.style.transition = 'opacity .35s ease';
 
 })();
 
