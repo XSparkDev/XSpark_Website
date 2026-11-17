@@ -25,20 +25,34 @@
   input:focus{border-color:var(--cx)}
   .btn{padding:11px 22px;border:0;border-radius:30px;cursor:pointer;font-weight:700;color:#fff;background:linear-gradient(90deg,#b11e2e,#7b1fa2)}
   .btn:disabled{opacity:.5;cursor:default}
-  .tabs{display:flex;gap:8px;margin:0 0 18px;border-bottom:1px solid var(--line)}
-  .tab{background:none;border:0;color:var(--muted);padding:10px 16px;cursor:pointer;font-size:.9rem;font-weight:600;border-bottom:2px solid transparent}
+  .tabs{display:flex;gap:6px;margin:0 0 20px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:0;color:var(--muted);padding:12px 18px;cursor:pointer;font-size:.92rem;font-weight:600;border-bottom:2px solid transparent;display:flex;align-items:center;gap:10px}
+  .tab:hover{color:var(--fg)}
   .tab.active{color:var(--fg);border-bottom-color:var(--cx)}
-  .row{padding:14px 0;border-bottom:1px solid var(--line)}
-  .row:last-child{border-bottom:0}
-  .meta{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:var(--muted);margin-bottom:6px}
-  .meta b{color:var(--fg);font-weight:600}
-  .msg{font-size:.92rem;line-height:1.5;white-space:pre-wrap}
-  .empty{color:var(--muted);padding:30px 0;text-align:center}
-  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+  .list-head{display:flex;justify-content:space-between;align-items:center;margin:0 0 14px}
+  .list-head .count{font-size:.8rem;color:var(--muted)}
+  .refresh{padding:7px 14px;font-size:.8rem;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);border-radius:20px;cursor:pointer}
+  .refresh:hover{color:var(--fg);border-color:var(--cx)}
+  .sub-card{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  .sub-card:last-child{margin-bottom:0}
+  .sub-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .avatar{width:40px;height:40px;flex:0 0 40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;color:#fff;background:linear-gradient(135deg,#b11e2e,#7b1fa2)}
+  .who{flex:1;min-width:0}
+  .who .nm{font-size:1rem;font-weight:700}
+  .who .em{font-size:.82rem;color:var(--muted);margin-top:2px;word-break:break-all}
+  .when{font-size:.78rem;color:var(--muted);white-space:nowrap;text-align:right}
+  .details{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px 18px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:14px}
+  .detail{min-width:0}
+  .detail .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+  .detail .v{font-size:.9rem;color:var(--fg);word-break:break-word}
+  .msg-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+  .msg{font-size:.95rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)}
+  .empty{color:var(--muted);padding:48px 20px;text-align:center;font-size:.95rem}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
   .link{color:var(--cx);background:none;border:0;cursor:pointer;font-size:.85rem}
   .err{color:#ff8095;font-size:.85rem;margin-top:10px}
   #login{max-width:420px;margin:60px auto}
-  .badge{font-size:.68rem;padding:3px 9px;border-radius:20px;background:rgba(0,204,255,.12);color:var(--cx)}
+  .badge{font-size:.7rem;padding:3px 10px;border-radius:20px;background:rgba(0,204,255,.12);color:var(--cx);font-weight:700}
 </style>
 </head>
 <body>
@@ -78,6 +92,10 @@
       <div class="tabs">
         <button class="tab active" data-source="contact">Email submissions <span class="badge" id="c-contact">0</span></button>
         <button class="tab" data-source="chat">Live chat starters <span class="badge" id="c-chat">0</span></button>
+      </div>
+      <div class="list-head">
+        <span class="count" id="list-count"></span>
+        <button class="refresh" id="refresh">Refresh</button>
       </div>
       <div id="list"><div class="empty">Loading…</div></div>
     </div>
@@ -132,8 +150,32 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active'); current=t.dataset.source; load();
 }));
 
+function detail(k,v){ return v ? '<div class="detail"><div class="k">'+k+'</div><div class="v">'+esc(v)+'</div></div>' : ''; }
+
+function renderRow(x, isChat){
+  const initial = esc((x.name||'?').trim().charAt(0).toUpperCase());
+  const when = x.created_at ? esc(new Date(x.created_at).toLocaleString()) : '';
+  let details = '';
+  if(isChat){
+    details = detail('Received', when);
+  }else{
+    details = detail('Company', x.company) + detail('Project type', x.project_type) + detail('Budget', x.budget) + detail('Received', when);
+  }
+  return '<article class="sub-card">'
+    + '<div class="sub-head">'
+      + '<div class="avatar">'+initial+'</div>'
+      + '<div class="who"><div class="nm">'+esc(x.name||'(no name)')+'</div><div class="em">'+esc(x.email||'')+'</div></div>'
+      + '<div class="when">'+when+'</div>'
+    + '</div>'
+    + (details ? '<div class="details">'+details+'</div>' : '')
+    + '<div class="msg-label">Message</div>'
+    + '<div class="msg">'+esc(x.message||'')+'</div>'
+  + '</article>';
+}
+
 async function load(){
   const list=$('#list'); list.innerHTML='<div class="empty">Loading…</div>';
+  $('#list-count').textContent='';
   try{
     const r=await fetch(URL+'/rest/v1/contact_messages?select=*&source=eq.'+encodeURIComponent(current)+'&order=created_at.desc',{
       headers:{'apikey':KEY,'Authorization':'Bearer '+token}
@@ -142,17 +184,14 @@ async function load(){
     if(!r.ok) throw new Error('Load failed ('+r.status+')');
     const rows=await r.json();
     $('#c-'+current).textContent=rows.length;
-    if(!rows.length){ list.innerHTML='<div class="empty">No submissions yet.</div>'; return; }
-    list.innerHTML=rows.map(x=>{
-      const bits=[];
-      if(x.company) bits.push('<b>Company:</b> '+esc(x.company));
-      if(x.project_type) bits.push('<b>Type:</b> '+esc(x.project_type));
-      if(x.budget) bits.push('<b>Budget:</b> '+esc(x.budget));
-      bits.push('<b>Date:</b> '+esc(new Date(x.created_at).toLocaleString()));
-      return '<div class="row"><div class="meta"><b>'+esc(x.name)+'</b><span>'+esc(x.email)+'</span>'+bits.join('<span>')+'</span></div><div class="msg">'+esc(x.message)+'</div></div>';
-    }).join('');
+    $('#list-count').textContent = rows.length + (rows.length===1?' submission':' submissions');
+    if(!rows.length){ list.innerHTML='<div class="empty">No '+(current==='chat'?'live chat starters':'email submissions')+' yet.</div>'; return; }
+    const isChat = current==='chat';
+    list.innerHTML=rows.map(x=>renderRow(x,isChat)).join('');
   }catch(err){ list.innerHTML='<div class="empty err">'+esc(err.message||'Error')+'</div>'; }
 }
+
+$('#refresh').addEventListener('click',load);
 
 if(token){ showApp(); load(); }
 </script>
