@@ -6,3 +6,7 @@ backups/
 .env.bakfix
 
 supabase/.temp/
+
+# stray local logo files (not part of the site)
+logos/gibs.png
+logos/shell.png
