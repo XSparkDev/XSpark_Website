@@ -29,10 +29,14 @@ let BASE_URL = (env.LLM_BASE_URL || process.env.LLM_BASE_URL || '').trim().repla
 const MODEL = (env.LLM_MODEL || process.env.LLM_MODEL || '').trim() || (API_KEY.startsWith('gsk_') ? 'openai/gpt-oss-120b' : 'gpt-4o-mini');
 const FALLBACK_MODEL = (env.LLM_FALLBACK_MODEL || process.env.LLM_FALLBACK_MODEL || '').trim() || (API_KEY.startsWith('gsk_') ? 'openai/gpt-oss-20b' : '');
 if (!BASE_URL) BASE_URL = API_KEY.startsWith('gsk_') ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
-const PORT = Number(env.CHAT_SERVER_PORT || process.env.CHAT_SERVER_PORT || 8787);
+const PORT = Number(process.env.PORT || env.CHAT_SERVER_PORT || process.env.CHAT_SERVER_PORT || 8787);
 
-const ALLOWED_ORIGINS = (env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS || 'http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,https://www.xspark.co.za')
-  .split(',').map(s => s.trim()).filter(Boolean);
+const DEFAULT_ORIGINS = 'http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:8747,http://localhost:8747,https://www.xspark.co.za,https://xspark.co.za';
+const envOrigins = env.ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS || '';
+const ALLOWED_ORIGINS = Array.from(new Set(
+  (DEFAULT_ORIGINS + ',' + envOrigins)
+    .split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean)
+));
 const TRUST_PROXY = /^(1|true|yes)$/i.test(String(env.TRUST_PROXY || process.env.TRUST_PROXY || '').trim());
 
 let publicKnowledge = '';
@@ -545,7 +549,7 @@ const server = http.createServer(async (req, res) => {
   return sendJson(res, 404, { error: 'Not found' }, req);
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`X Spark chat server running on http://localhost:${PORT}`);
   console.log(`Model: ${MODEL}${FALLBACK_MODEL ? ` (fallback: ${FALLBACK_MODEL})` : ''}`);
   console.log(`Public knowledge loaded: ${Boolean(publicKnowledge)} (${publicKnowledge.length} chars)`);

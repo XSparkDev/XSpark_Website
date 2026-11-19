@@ -71,6 +71,8 @@ body{
   top:0;left:0;right:0;
   z-index:200;
   display:flex;align-items:center;gap:24px;
+  --theme-btn-size:38px;
+  --moon-glyph:14.81px;
   padding:10px max(28px,env(safe-area-inset-left,0px)) 0 max(28px,env(safe-area-inset-left,0px));
   transition:background .5s,border-color .5s;
   border-bottom:1px solid transparent;
@@ -117,6 +119,16 @@ body{
   white-space:nowrap;
   display:inline-flex;align-items:center;justify-content:center;
   line-height:1;
+}
+#mist-toggle{order:2;margin-right:-14px}
+#theme-toggle{order:3}
+#ham{order:4}
+html.theme-switching #mist-toggle{display:inline-flex;overflow:hidden;animation:mist-enter .25s ease both}
+html.theme-switching:not([data-theme="light"]) #mist-toggle{animation:mist-leave .25s ease both}
+@keyframes mist-enter{from{width:0;opacity:0}to{width:var(--mist-w,58px);opacity:1}}
+@keyframes mist-leave{from{width:var(--mist-w,58px);opacity:1}to{width:0;opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  html.theme-switching #mist-toggle,html.theme-switching:not([data-theme="light"]) #mist-toggle{animation:none}
 }
 .nav-btn:hover{filter:brightness(1.1);box-shadow:0 4px 16px rgba(123,31,162,.4)}
 .hamburger{
@@ -460,6 +472,57 @@ body{
 .pillar-icon{color:var(--cx);margin-bottom:7px}
 .pillar-name{font-size:.8125rem;font-weight:600;color:var(--fg);margin-bottom:2px}
 .pillar-sub{font-size:.75rem;color:var(--muted)}
+
+/* ── Breaking news ticker (About) ── */
+.mission-pillars{position:relative}
+.news-ticker{
+  position:absolute;z-index:1;
+  top:var(--news-ticker-top,146px);left:0;right:0;
+  height:40px;display:flex;align-items:center;overflow:hidden;
+  opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity .4s ease-in-out,visibility 0s;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 8%,#000 92%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,#000 8%,#000 92%,transparent 100%);
+}
+.mission[data-more="false"] .news-ticker{opacity:1;visibility:visible;pointer-events:auto}
+.mission[data-more="true"] .news-ticker{
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .4s ease-in-out,visibility 0s linear .4s;
+}
+.mission-pillars .pillar:nth-child(3),
+.mission-pillars .pillar:nth-child(4){opacity:0;transform:translateY(40px)}
+.mission[data-more="true"] .mission-pillars .pillar:nth-child(3),
+.mission[data-more="true"] .mission-pillars .pillar:nth-child(4){opacity:1;transform:translateY(0)}
+.news-ticker-track{
+  display:flex;align-items:center;flex:0 0 auto;
+  white-space:nowrap;will-change:transform;
+  animation:news-ticker-move var(--news-ticker-duration,45s) linear infinite;
+}
+.news-ticker-set{display:flex;align-items:center;flex:0 0 auto;white-space:nowrap}
+.news-ticker-item{
+  font-family:"Helvetica Neue","HelveticaNeue-Light","Helvetica Neue Light",Helvetica,"Inter",Arial,sans-serif;
+  font-weight:300;font-synthesis:none;font-size:15px;letter-spacing:.2px;
+  white-space:nowrap;color:var(--fg);opacity:.85;
+}
+.news-ticker-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--cx);
+  margin:0 28px;flex:0 0 6px;
+}
+@keyframes news-ticker-move{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(hover:hover){
+  .news-ticker:hover .news-ticker-track{animation-play-state:paused}
+}
+.news-ticker:focus-within .news-ticker-track{animation-play-state:paused}
+@media(max-width:560px){
+  .news-ticker-item{font-size:clamp(13px,4vw,16px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .news-ticker-track{animation:none;flex:1 1 auto;max-width:100%;flex-wrap:wrap;justify-content:center;white-space:normal}
+  .news-ticker{height:auto;overflow:visible;-webkit-mask-image:none;mask-image:none}
+  .news-ticker-set{flex:1 1 auto;max-width:100%;flex-wrap:wrap;justify-content:center;white-space:normal}
+  .news-ticker-set[aria-hidden="true"]{display:none}
+  .news-ticker-item{white-space:normal}
+}
 
 /* ══════════════════════════════════════════════════════════════
    SERVICES — penguin colony as dramatic backdrop
@@ -864,6 +927,15 @@ section {scroll-margin-top: 90px; max-width:100%;}
   }
   @keyframes mob-hint-fade{to{opacity:.45}}
   .scroll-hint-mobile span{display:none}
+  /* Scroll row reads SCROLL (icon) EXPLORE; original text stays hidden */
+  .scroll-hint.scroll-hint-mobile{flex-direction:row;gap:10px}
+  .scroll-hint-mobile .mouse{height:24px}
+  .scroll-hint-mobile::before,.scroll-hint-mobile::after{
+    font-family:var(--f-b);font-size:.62rem;letter-spacing:.15em;
+    text-transform:uppercase;white-space:nowrap;line-height:1;color:inherit;
+  }
+  .scroll-hint-mobile::before{content:"Scroll"}
+  .scroll-hint-mobile::after{content:"Explore"}
   /* Balanced optical clear space: visible logo edges sit --logo-inset from screen edges */
   .nav{
     --logo-inset:max(20px,7.5px);
@@ -872,7 +944,8 @@ section {scroll-margin-top: 90px; max-width:100%;}
   }
   .logo img{height:64px !important;width:90.6px !important;margin-top:-9.5px !important;margin-left:-27.5px;flex-shrink:0;transform:scale(2.5);transform-origin:left center}
   /* Light mode: theme button + mist switch sit together as a right-aligned pair (10px gap) */
-  html[data-theme="light"] #mist-toggle{margin-left:-2px}
+  html[data-theme="light"] #mist-toggle{margin-left:auto;margin-right:-2px}
+  html[data-theme="light"] #theme-toggle{margin-left:0}
   .hero-content{padding:calc(var(--hdr-h,73px) + 12px) 14px 16px;gap:11px}
   .hero-left{gap:8px}
   .hero-h1{font-size:clamp(1.56rem,8.3vw,2.2rem);margin-bottom:0}
@@ -942,6 +1015,47 @@ section {scroll-margin-top: 90px; max-width:100%;}
   .hero-content{padding-top:88px}
   .btn-primary,.hero-cta,.nav-btn{padding:11px 18px;font-size:.88rem}
   .logo-slot{width:84px;height:34px}
+}
+
+@media(max-width:560px){
+  /* Roomier hero text while no card is open; compact values return when a card opens */
+  .first-screen{--logo-inset:max(20px,7.5px)}
+  .hero-content{
+    --hero-gap:11px;--hero-pt:calc(var(--hdr-h,73px) + 12px);--hero-pb:16px;--hero-side:var(--logo-inset,20px);
+    --g1:0px;--g2:0px;--g3:0px;--lh:1.6;--mb:3px;
+    padding:var(--hero-pt) var(--hero-side) var(--hero-pb);gap:var(--hero-gap);
+    transition:padding .4s ease-in-out,gap .4s ease-in-out;
+  }
+  .hero-h1{margin-top:var(--g1);transition:max-height .4s ease-in-out,opacity .4s ease-in-out,margin .4s ease-in-out,padding .4s ease-in-out}
+  .hero-body{margin-top:var(--g2);margin-bottom:var(--mb);line-height:var(--lh);transition:max-height .4s ease-in-out,opacity .4s ease-in-out,margin .4s ease-in-out,padding .4s ease-in-out}
+  .hero-cta{margin-top:var(--g3);transition:max-height .4s ease-in-out,opacity .4s ease-in-out,margin .4s ease-in-out,padding .4s ease-in-out}
+  @media(min-height:700px){
+    .hero-content{--hero-gap:clamp(11px,2.4svh,26px);--g1:clamp(8px,1.6svh,16px);--g2:clamp(10px,2svh,20px);--g3:clamp(14px,2.6svh,28px);--lh:1.55}
+  }
+  @media(max-height:699px){
+    .hero-content{--hero-pt:calc(var(--hdr-h,73px) + 6px);--hero-pb:8px}
+  }
+  @media(max-width:340px){
+    .hero-content{--hero-side:14px;--hero-pt:calc(var(--hdr-h,73px) + 4px);--hero-pb:4px;--hero-gap:6px}
+  }
+  .hero-content:has(.words-collapsed){--hero-gap:11px;--hero-pt:calc(var(--hdr-h,73px) + 12px);--hero-pb:16px;--hero-side:14px;--g1:0px;--g2:0px;--g3:0px;--lh:1.6;--mb:3px}
+  @media(prefers-reduced-motion:reduce){
+    .hero-content,.hero-h1,.hero-body,.hero-cta{transition:none}
+  }
+  /* Horizontal mist switch on mobile, same sizing as desktop */
+  #mist-toggle{
+    --mist-h:round(nearest, calc(var(--theme-btn-size) * .70), 1px);
+    --mist-w:round(nearest, calc(var(--mist-h) * 1.6), 1px);
+    touch-action:pan-y;
+  }
+  html[data-theme="light"] #mist-toggle{
+    background:transparent;border:1px solid rgba(7,113,154,.3);
+  }
+  html[data-theme="light"] #mist-toggle:hover{background:rgba(7,113,154,.12)}
+  html[data-theme="light"] #mist-toggle .mist-knob{background:transparent}
+  html[data-theme="light"] #mist-toggle[aria-checked="true"]{background:transparent;border-color:rgba(7,113,154,.3)}
+  html[data-theme="light"] #mist-toggle[aria-checked="true"] .mist-knob{transform:translateX(var(--mist-travel));background:transparent}
+  html[data-theme="light"] .nav #mist-toggle::after{content:'';position:absolute;inset:-9px -1px}
 }
 
 @media(max-width:960px){
@@ -1578,18 +1692,22 @@ html[data-theme="light"] #aurora-cvs{opacity:0}
 html[data-theme="light"] .mist-toggle{display:inline-flex}
 /* switch: pill track + sliding knob, ~1.7x as wide as tall */
 .mist-toggle{
-  width:58px;height:34px;border-radius:18px;
-  padding:2px;justify-content:flex-start;position:relative;
+  --mist-h:round(nearest, calc(var(--theme-btn-size) * .763), 1px);
+  --mist-w:round(nearest, calc(var(--theme-btn-size) * 1.368), 1px);
+  --mist-gap:calc((var(--mist-h) - var(--moon-glyph)) / 2);
+  --mist-travel:calc(var(--mist-w) - var(--moon-glyph) - 2 * var(--mist-gap));
+  width:var(--mist-w);height:var(--mist-h);border-radius:999px;
+  padding:calc(var(--mist-gap) - 1px);justify-content:flex-start;position:relative;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
 }
 .mist-knob{
-  width:26px;height:26px;border-radius:50%;flex:0 0 26px;
+  width:var(--moon-glyph);height:var(--moon-glyph);border-radius:50%;flex:0 0 var(--moon-glyph);
+  box-sizing:border-box;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.18);color:var(--muted);
-  transition:transform .2s ease,background .2s ease,color .2s ease;
+  background:transparent;border:1.5px solid var(--fg);color:var(--muted);
+  transition:transform .2s ease,background .2s ease;
 }
-.mist-knob svg{width:14px;height:14px;display:block}
-.mist-toggle[aria-checked="true"] .mist-knob{transform:translateX(24px);background:rgba(0,204,255,.22);color:var(--cx)}
+.mist-toggle[aria-checked="true"] .mist-knob{transform:translateX(var(--mist-travel));background:transparent}
 .mist-toggle:hover{background:rgba(255,255,255,.12)}
 .mist-toggle:focus-visible{outline:2px solid var(--cx);outline-offset:3px}
 .logo-on-light{display:none}
@@ -1603,10 +1721,11 @@ html[data-theme="light"]{
 }
 html[data-theme="light"] .theme-toggle{background:rgba(7,113,154,.06);border-color:rgba(7,113,154,.3)}
 html[data-theme="light"] .theme-toggle:hover{background:rgba(7,113,154,.12)}
-html[data-theme="light"] .mist-toggle{background:rgba(7,113,154,.06);border-color:rgba(7,113,154,.3)}
+html[data-theme="light"] .mist-toggle{background:transparent;border-color:rgba(7,113,154,.3)}
+html[data-theme="light"] #mist-toggle::after{content:'';position:absolute;inset:-6px 0}
 html[data-theme="light"] .mist-toggle:hover{background:rgba(7,113,154,.12)}
-html[data-theme="light"] .mist-knob{background:rgba(7,113,154,.14)}
-html[data-theme="light"] .mist-toggle[aria-checked="true"] .mist-knob{background:rgba(7,113,154,.22);color:#07719a}
+html[data-theme="light"] .mist-knob{background:transparent;box-shadow:none;border:1.5px solid var(--fg)}
+html[data-theme="light"] .mist-toggle[aria-checked="true"] .mist-knob{background:transparent}
 html[data-theme="light"] .theme-toggle .icon-sun{display:none}
 html[data-theme="light"] .theme-toggle .icon-moon{display:block}
 html[data-theme="light"] .logo-on-dark{display:none}
@@ -1811,7 +1930,8 @@ html[data-theme="light"] .f-copy{color:rgba(40,60,76,.9)}
 .logo-slot[data-logo="saab"]{width:74px}.logo-slot[data-logo="saab"] img{max-height:34px}
 .logo-slot[data-logo="tushiyah"]{width:115px}.logo-slot[data-logo="tushiyah"] img{max-height:32px}
 .logo-slot[data-logo="gibs"]{width:120px}.logo-slot[data-logo="gibs"] img{max-height:34px;mix-blend-mode:multiply;transform:scale(1.54);transform-origin:center center}
-.logo-slot[data-logo="shell"]{width:90px}.logo-slot[data-logo="shell"] img{max-height:32px;transform:scale(1.188);transform-origin:center center}
+.logo-slot[data-logo="shell"]{width:90px}.logo-slot[data-logo="shell"] img{max-height:32px;transform:scale(1.3068);transform-origin:center center}
+.logo-slot[data-logo="beehive"]{width:100px}.logo-slot[data-logo="beehive"] img{max-height:34px;transform:scale(1.105);transform-origin:center center}
 /* Logo zoom — transform only, no layout/size changes */
 .logo-belt img{transform-origin:center center}
 .logo-slot[data-logo="saab"] img{transform:scale(2)}
@@ -2076,9 +2196,7 @@ html{scroll-padding-top:100px}
     <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
   </button>
   <button type="button" class="theme-toggle mist-toggle" id="mist-toggle" role="switch" aria-checked="false" aria-label="Reduce overlay" title="Reduce overlay">
-    <span class="mist-knob" aria-hidden="true">
-      <svg viewBox="0 0 16 16" fill="none"><path d="M3 5h10M4 8h8M3 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    </span>
+    <span class="mist-knob" aria-hidden="true"></span>
   </button>
   <button class="hamburger" id="ham" aria-label="Open menu" aria-expanded="false">
     <span class="ham-wrap" aria-hidden="true">
@@ -2273,6 +2391,7 @@ html{scroll-padding-top:100px}
     <span class="logo-slot" data-logo="tushiyah"><img src="images/clients/tushiyah.png" alt="Tushiyah" loading="lazy"></span>
     <span class="logo-slot" data-logo="gibs"><img src="logos/gibs.png" alt="Gordon Institute of Business Science" loading="lazy"></span>
     <span class="logo-slot" data-logo="shell"><img src="logos/shell.png" alt="Shell" loading="lazy"></span>
+    <span class="logo-slot" data-logo="beehive"><img src="logos/beehive.png" alt="Beehive" loading="lazy"></span>
     <!-- duplicate set for seamless loop -->
     <span class="logo-slot" data-logo="atns"><img src="images/clients/atns.jpg" alt="" loading="lazy"></span>
     <span class="logo-slot" data-logo="oracle"><img src="images/clients/oracle.webp" alt="" loading="lazy"></span>
@@ -2292,6 +2411,7 @@ html{scroll-padding-top:100px}
     <span class="logo-slot" data-logo="tushiyah"><img src="images/clients/tushiyah.png" alt="" loading="lazy"></span>
     <span class="logo-slot" data-logo="gibs"><img src="logos/gibs.png" alt="" loading="lazy"></span>
     <span class="logo-slot" data-logo="shell"><img src="logos/shell.png" alt="" loading="lazy"></span>
+    <span class="logo-slot" data-logo="beehive"><img src="logos/beehive.png" alt="" loading="lazy"></span>
   </div>
   </div>
 </div>
@@ -2304,7 +2424,7 @@ html{scroll-padding-top:100px}
 </div><!-- /first-screen -->
 
 <!-- ═══════════════════════════════ MISSION ════════════════════════ -->
-<section class="mission" id="about">
+<section class="mission" id="about" data-more="false">
   <div class="mission-photo-bg" aria-hidden="true"></div>
   <div class="mission-inner">
 
@@ -2380,6 +2500,26 @@ html{scroll-padding-top:100px}
           </div>
           <div class="pillar-name">Scalable Architecture</div>
           <div class="pillar-sub">Built for 100x growth</div>
+        </div>
+        <div class="news-ticker" role="region" aria-label="Latest news" tabindex="0">
+          <div class="news-ticker-track">
+            <div class="news-ticker-set">
+              <span class="news-ticker-item">X Spark Returns to Silicon Valley</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+              <span class="news-ticker-item">X Spark Establishes a New Relationship with the Johannesburg Stock Exchange (JSE)</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+              <span class="news-ticker-item">X Spark Impresses Edge Growth</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+            </div>
+            <div class="news-ticker-set" aria-hidden="true">
+              <span class="news-ticker-item">X Spark Returns to Silicon Valley</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+              <span class="news-ticker-item">X Spark Establishes a New Relationship with the Johannesburg Stock Exchange (JSE)</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+              <span class="news-ticker-item">X Spark Impresses Edge Growth</span>
+              <span class="news-ticker-dot" aria-hidden="true"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2607,11 +2747,11 @@ html{scroll-padding-top:100px}
           <div class="bmsg bot">Hi! I'm the X Spark assistant. Ask me anything about how we work.</div>
         </div>
         <div class="bot-quickies" id="bot-qs">
-          <button class="bq" data-q="services">What services do you offer?</button>
-          <button class="bq" data-q="ai">Tell me about your AI capabilities</button>
-          <button class="bq" data-q="timeline">How long does a project take?</button>
-          <button class="bq" data-q="start">How do we get started?</button>
-          <button class="bq" data-q="security">What about security?</button>
+          <button class="bq" data-q="services" data-quick-id="services">What services do you offer?</button>
+          <button class="bq" data-q="ai" data-quick-id="ai">Tell me about your AI capabilities</button>
+          <button class="bq" data-q="timeline" data-quick-id="timeline">How long does a project take?</button>
+          <button class="bq" data-q="start" data-quick-id="start">How do we get started?</button>
+          <button class="bq" data-q="security" data-quick-id="security">What about security?</button>
         </div>
         <div class="bot-input-row" style="display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)">
           <input id="bot-input" type="text" placeholder="Ask about X Spark..." autocomplete="off" style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;font:inherit" />
@@ -2849,11 +2989,11 @@ html{scroll-padding-top:100px}
       <div class="fcmsg bot">Hi! I'm the X Spark assistant. Ask me anything about how we work.</div>
     </div>
     <div class="fc-qs" id="fc-qs">
-      <button class="fcq" data-fq="services">What services do you offer?</button>
-      <button class="fcq" data-fq="ai">Tell me about your AI capabilities</button>
-      <button class="fcq" data-fq="timeline">How long does a project take?</button>
-      <button class="fcq" data-fq="start">How do we get started?</button>
-      <button class="fcq" data-fq="security">What about security?</button>
+      <button class="fcq" data-fq="services" data-quick-id="services">What services do you offer?</button>
+      <button class="fcq" data-fq="ai" data-quick-id="ai">Tell me about your AI capabilities</button>
+      <button class="fcq" data-fq="timeline" data-quick-id="timeline">How long does a project take?</button>
+      <button class="fcq" data-fq="start" data-quick-id="start">How do we get started?</button>
+      <button class="fcq" data-fq="security" data-quick-id="security">What about security?</button>
     </div>
     <div class="fc-input-row" style="display:flex;gap:8px;padding:8px 10px 10px;border-top:1px solid rgba(255,255,255,.08)">
       <input id="fc-input" type="text" placeholder="Ask about X Spark..." autocomplete="off" style="flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;font:inherit;font-size:14px" />
@@ -3406,6 +3546,106 @@ const io = new IntersectionObserver((entries)=>{
 }, {threshold:0, rootMargin:'-10% 0px -10% 0px'});
 revealEls.forEach(el=>io.observe(el));
 
+/* ── Breaking news ticker: constant-speed seamless crawl ─────── */
+(function(){
+  var ticker = document.querySelector('.news-ticker');
+  var track = ticker && ticker.querySelector('.news-ticker-track');
+  if(!ticker || !track) return;
+  function ensureLength(){
+    var guard = 0;
+    while(track.scrollWidth < ticker.clientWidth * 2 && guard < 3){
+      var a = track.firstElementChild.cloneNode(true);
+      var b = track.firstElementChild.cloneNode(true);
+      a.setAttribute('aria-hidden','true');
+      b.setAttribute('aria-hidden','true');
+      track.appendChild(a);
+      track.appendChild(b);
+      guard++;
+    }
+  }
+  function setDuration(){
+    var half = track.scrollWidth / 2;
+    if(half > 0) ticker.style.setProperty('--news-ticker-duration', (half / 60).toFixed(2) + 's');
+  }
+  function setPosition(){
+    var pillars = document.querySelectorAll('.mission-pillars .pillar');
+    var anchor = pillars[2];
+    if(!anchor) return;
+    var host = ticker.parentElement.getBoundingClientRect();
+    var a = anchor.getBoundingClientRect();
+    ticker.style.setProperty('--news-ticker-top', (a.top - host.top + (a.height - ticker.offsetHeight) / 2).toFixed(1) + 'px');
+  }
+  ensureLength();
+  setDuration();
+  setPosition();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ ensureLength(); setDuration(); setPosition(); });
+  if(window.ResizeObserver){
+    new ResizeObserver(setDuration).observe(track);
+    new ResizeObserver(setPosition).observe(ticker.parentElement);
+  }
+  window.addEventListener('resize', function(){ setDuration(); setPosition(); }, {passive:true});
+})();
+
+/* ── About arrival: ticker shows at once, second row follows manual scroll ── */
+(function(){
+  var mission = document.querySelector('.mission#about');
+  var ticker = document.querySelector('.news-ticker');
+  var row1 = document.querySelector('.mission-pillars .pillar');
+  if(!mission || !ticker || !row1) return;
+  var settling = false, arrivalY = null, idleTimer = null, maxTimer = null, userScroll = false;
+
+  function finish(){
+    if(!settling) return;
+    settling = false;
+    arrivalY = window.scrollY;
+  }
+  function beginSettle(){
+    clearTimeout(idleTimer); clearTimeout(maxTimer);
+    settling = true;
+    idleTimer = setTimeout(finish, 150);
+    maxTimer = setTimeout(finish, 1200);
+  }
+  window.__xsAboutArrive = function(){
+    mission.setAttribute('data-more','false');
+    var nav = document.querySelector('.nav');
+    var navH = nav ? nav.offsetHeight : 80;
+    var tb = ticker.getBoundingClientRect();
+    var rb = row1.getBoundingClientRect();
+    var target = tb.bottom + window.pageYOffset - window.innerHeight + 8;
+    var limit = rb.top + window.pageYOffset - navH - 16;
+    window.scrollTo({ top: Math.max(0, Math.min(target, limit)), behavior: 'instant' });
+    arrivalY = window.scrollY;
+    beginSettle();
+  };
+  function fromHash(){ if(location.hash === '#about') window.__xsAboutArrive(); }
+  window.addEventListener('hashchange', fromHash, {passive:true});
+  if(location.hash === '#about') setTimeout(fromHash, 60);
+  document.querySelectorAll('a[href="#about"]').forEach(function(a){
+    if(a.classList.contains('nav-ov-link')) return;
+    a.addEventListener('click', function(e){ e.preventDefault(); window.__xsAboutArrive(); }, true);
+  });
+  ['wheel','touchmove'].forEach(function(t){
+    window.addEventListener(t, function(){ userScroll = true; }, {passive:true});
+  });
+  window.addEventListener('keydown', function(e){
+    if(/^(PageDown|PageUp|ArrowDown|ArrowUp|End|Home| )$/.test(e.key)) userScroll = true;
+  }, {passive:true});
+  window.addEventListener('scroll', function(){
+    if(settling) return;
+    if(arrivalY === null){
+      var r = row1.getBoundingClientRect();
+      if(r.top < window.innerHeight && r.bottom > 0){
+        arrivalY = window.scrollY;
+        mission.setAttribute('data-more','false');
+      }
+      return;
+    }
+    if(userScroll && window.scrollY > arrivalY + 80) mission.setAttribute('data-more','true');
+    else if(window.scrollY <= arrivalY) mission.setAttribute('data-more','false');
+  }, {passive:true});
+  if('onscrollend' in window) window.addEventListener('scrollend', finish, {passive:true});
+})();
+
 /* ── Active nav link ──────────────────────────────────────────── */
 const sections = document.querySelectorAll('section[id]');
 const navLinks  = document.querySelectorAll('.nav-links a');
@@ -3463,11 +3703,22 @@ optCards.forEach(card=>{
 activateMode('bot', true);
 
 /* ── Bot chat (wired to local chat server, grounded in library) ── */
-const CHAT_API_URL = window.XSPARK_CHAT_API || (
-  (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? 'http://localhost:8787/api/chat'
-    : ((location.protocol === 'http:' || location.protocol === 'https:') ? (location.origin + '/api/chat') : 'http://localhost:8787/api/chat')
-);
+const CHAT_PRODUCTION_URL = "https://REPLACE-ME.onrender.com/api/chat";
+function resolveChatApiUrl(){
+  if (window.XSPARK_CHAT_API) return String(window.XSPARK_CHAT_API);
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:8787/api/chat';
+  return CHAT_PRODUCTION_URL;
+}
+const CHAT_API_URL = resolveChatApiUrl();
+const CHAT_CONFIGURED = !CHAT_API_URL.includes('REPLACE-ME');
+const CHAT_HEALTH_URL = CHAT_API_URL.replace(/\/api\/chat\/?$/, '/health');
+const CHAT_UNAVAILABLE = "Sorry, I couldn't respond right now. Please try again or use the Send a Message form.";
+let chatWarmupDone = false;
+function warmupChatServer(){
+  if (chatWarmupDone || !CHAT_CONFIGURED) return;
+  chatWarmupDone = true;
+  try { fetch(CHAT_HEALTH_URL, { mode: 'no-cors' }).catch(function(){}); } catch (e) {}
+}
 
 const QUICK_PROMPTS = {
   services: 'What services does X Spark offer?',
@@ -3476,6 +3727,31 @@ const QUICK_PROMPTS = {
   start: 'How do we get started working with X Spark?',
   security: 'What are X Spark security and DevSecOps capabilities?'
 };
+const QUICK_ANSWERS = {
+  services: 'We build websites, apps, software, AI and automation solutions, and provide cloud and DevOps support.',
+  ai: 'We help businesses with AI and automation solutions based on their needs. You can tell me more about what you need.',
+  timeline: 'Project timing depends on the scope and requirements, and the team confirms it after discussing your needs. You can tell me more about what you need.',
+  start: 'We usually start with a short conversation about your goals and needs, then discuss the right next steps.',
+  security: 'We provide cloud, DevOps, and DevSecOps support based on project needs. You can tell me more about what you need.'
+};
+const QUICK_IDS = Object.keys(QUICK_ANSWERS);
+function normalizeQuestion(s){
+  return String(s || '').trim().toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+function quickAnswerFor(text){
+  const n = normalizeQuestion(text);
+  if (!n) return null;
+  let id = null;
+  document.querySelectorAll('[data-quick-id]').forEach(function(b){
+    if (!id && n === normalizeQuestion(b.textContent)) id = b.getAttribute('data-quick-id');
+  });
+  if (!id) {
+    for (const key of QUICK_IDS) {
+      if (n === normalizeQuestion(QUICK_PROMPTS[key])) { id = key; break; }
+    }
+  }
+  return id && QUICK_ANSWERS[id] ? { id: id, text: QUICK_ANSWERS[id] } : null;
+}
 
 const botHistory = [];
 const fcHistory = [];
@@ -3510,21 +3786,84 @@ function showTyping(){
 }
 
 async function askXsparkBot(userText, history){
-  const res = await fetch(CHAT_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: history.slice(-10), context: 'xspark-library' })
-  });
-  let data = {};
-  try { data = await res.json(); } catch {}
-  if(!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
-  if(data.error) throw new Error(data.error);
-  return {
-    reply: data.reply || "Sorry, I couldn't respond right now. Please try again or use the Send a Message form.",
-    status: data.status || "warming",
-    collected: data.collected || {},
-    summary: data.summary || ""
+  if (!CHAT_CONFIGURED) return { reply: CHAT_UNAVAILABLE, status: 'warming', collected: {}, summary: '' };
+  const attempt = async function(signal){
+    const res = await fetch(CHAT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history.slice(-10), context: 'xspark-library' }),
+      signal: signal
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+    if (!res.ok || !data || typeof data !== 'object' || !Object.keys(data).length || data.error) return null;
+    return {
+      reply: data.reply || CHAT_UNAVAILABLE,
+      status: data.status || 'warming',
+      collected: data.collected || {},
+      summary: data.summary || ''
+    };
   };
+  const controller = new AbortController();
+  const timer = setTimeout(function(){ controller.abort(); }, 45000);
+  let result = null, networkError = false;
+  try { result = await attempt(controller.signal); }
+  catch (e) { networkError = true; }
+  clearTimeout(timer);
+  if (!result && networkError){
+    await new Promise(function(r){ setTimeout(r, 3000); });
+    const retryController = new AbortController();
+    const retryTimer = setTimeout(function(){ retryController.abort(); }, 45000);
+    try { result = await attempt(retryController.signal); } catch (e) { result = null; }
+    clearTimeout(retryTimer);
+  }
+  if (!result) return { reply: CHAT_UNAVAILABLE, status: 'warming', collected: {}, summary: '' };
+  return result;
+}
+
+function addPlainBubble(container, cls, text){
+  if (!container) return null;
+  const div = document.createElement('div');
+  div.className = cls;
+  String(text).split('\n').forEach(function(part, i){
+    if (i) div.appendChild(document.createElement('br'));
+    div.appendChild(document.createTextNode(part));
+  });
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+function showTypingFor(inline){
+  const msgs = document.getElementById(inline ? 'bot-msgs' : 'fc-msgs');
+  if (!msgs) return null;
+  const div = document.createElement('div');
+  div.className = inline ? 'bmsg typing' : 'fcmsg typing';
+  div.innerHTML = '<div class="td"></div><div class="td"></div><div class="td"></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+async function tryQuickAnswer(text, source){
+  const quick = quickAnswerFor(text);
+  if (!quick) return false;
+  const inline = source !== 'floating';
+  const msgs = document.getElementById(inline ? 'bot-msgs' : 'fc-msgs');
+  const input = document.getElementById(inline ? 'bot-input' : 'fc-input');
+  const sendBtn = document.getElementById(inline ? 'bot-send' : 'fc-send');
+  const chips = document.querySelectorAll(inline ? '.bq' : '.fcq');
+  addPlainBubble(msgs, (inline ? 'bmsg ' : 'fcmsg ') + 'user', text);
+  chips.forEach(function(b){ b.disabled = true; });
+  if (sendBtn) sendBtn.disabled = true;
+  if (input) input.disabled = true;
+  const typing = showTypingFor(inline);
+  await new Promise(function(r){ setTimeout(r, 650); });
+  if (typing) typing.remove();
+  addPlainBubble(msgs, (inline ? 'bmsg ' : 'fcmsg ') + 'bot', quick.text);
+  chips.forEach(function(b){ b.disabled = false; });
+  if (sendBtn) sendBtn.disabled = false;
+  if (input) input.disabled = false;
+  return true;
 }
 
 function mapNeedToProjectType(need, summary){
@@ -3592,6 +3931,7 @@ async function handleBotSend(text){
   const msg = (text || (input ? input.value : '') || '').trim();
   if(!msg) return;
   if(input) input.value = '';
+  if(await tryQuickAnswer(msg, 'inline')) return;
   addMsg(msg, 'user');
   botHistory.push({ role: 'user', content: msg });
   document.querySelectorAll('.bq').forEach(b=> b.disabled = true);
@@ -3617,7 +3957,7 @@ async function handleBotSend(text){
 
 document.querySelectorAll('.bq').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    const prompt = QUICK_PROMPTS[btn.dataset.q] || btn.textContent;
+    const prompt = QUICK_PROMPTS[btn.dataset.quickId || btn.dataset.q] || btn.textContent;
     handleBotSend(prompt);
   });
 });
@@ -3689,6 +4029,7 @@ const fcPanel   = document.getElementById('fc-panel');
 const fcMsgs    = document.getElementById('fc-msgs');
 
 function setFC(open){
+  if(open) warmupChatServer();
   fcPanel.classList.toggle('open', open);
   document.body.classList.toggle('chat-open', open);
   fcFab.setAttribute('aria-expanded', String(open));
@@ -3714,6 +4055,7 @@ async function handleFcSend(text){
   const msg = (text || (input ? input.value : '') || '').trim();
   if(!msg) return;
   if(input) input.value = '';
+  if(await tryQuickAnswer(msg, 'floating')) return;
   fcAdd(msg, 'user');
   fcHistory.push({ role: 'user', content: msg });
   document.querySelectorAll('.fcq').forEach(b=> b.disabled = true);
@@ -3739,7 +4081,7 @@ async function handleFcSend(text){
 
 document.querySelectorAll('.fcq').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    const prompt = QUICK_PROMPTS[btn.dataset.fq] || btn.textContent;
+    const prompt = QUICK_PROMPTS[btn.dataset.quickId || btn.dataset.fq] || btn.textContent;
     handleFcSend(prompt);
   });
 });
@@ -3798,6 +4140,7 @@ if(window.innerWidth > 560) floatChat.style.transition = 'opacity .35s ease';
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     const href = this.getAttribute('href');
+    if (href === '#about' && window.__xsAboutArrive) return;
     if (href === '#') {
       e.preventDefault();
       window.scrollTo({top: 0, behavior: 'smooth'});
@@ -4121,10 +4464,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (mist) mist.setAttribute('aria-checked', reduced ? 'true' : 'false');
   }
   label(); applyMist();
+  var themeAnimTimer = null;
   if (btn) btn.addEventListener('click', function(){
     var light = root.getAttribute('data-theme') !== 'light';
+    clearTimeout(themeAnimTimer);
+    root.classList.add('theme-switching');
     if (light) root.setAttribute('data-theme', 'light'); else root.removeAttribute('data-theme');
     try { localStorage.setItem('xs-theme', light ? 'light' : 'dark'); } catch (e) {}
+    themeAnimTimer = setTimeout(function(){ root.classList.remove('theme-switching'); }, 280);
     label();
   });
   if (mist) mist.addEventListener('click', function(){
@@ -4132,6 +4479,45 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     root.style.setProperty('--mist-strength', reduced ? '.45' : '1');
     try { localStorage.setItem('xs-mist', reduced ? 'reduced' : 'full'); } catch (e) {}
     applyMist();
+  });
+})();
+
+// Mobile only: horizontal mist switch tap / swipe / keyboard gestures
+(function(){
+  if(!window.matchMedia || !window.matchMedia('(max-width:560px)').matches) return;
+  var m = document.getElementById('mist-toggle');
+  if(!m) return;
+  m.setAttribute('aria-orientation','horizontal');
+  var root = document.documentElement;
+  var startX = null, lastSwipe = 0;
+  function setMist(on){
+    root.style.setProperty('--mist-strength', on ? '.45' : '1');
+    try { localStorage.setItem('xs-mist', on ? 'reduced' : 'full'); } catch (e) {}
+    m.setAttribute('aria-checked', on ? 'true' : 'false');
+  }
+  m.addEventListener('pointerdown', function(e){ startX = e.clientX; }, {passive:true});
+  m.addEventListener('pointercancel', function(){ startX = null; }, {passive:true});
+  m.addEventListener('pointerup', function(e){
+    if(startX === null) return;
+    var dx = e.clientX - startX;
+    startX = null;
+    if(Math.abs(dx) >= 12){ lastSwipe = performance.now(); setMist(dx > 0); }
+  }, {passive:true});
+  m.addEventListener('click', function(e){
+    if(performance.now() - lastSwipe < 400){ e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+})();
+(function(){
+  var m = document.getElementById('mist-toggle');
+  if(!m) return;
+  var root = document.documentElement;
+  m.addEventListener('keydown', function(e){
+    if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    var on = e.key === 'ArrowRight';
+    root.style.setProperty('--mist-strength', on ? '.45' : '1');
+    try { localStorage.setItem('xs-mist', on ? 'reduced' : 'full'); } catch (err) {}
+    m.setAttribute('aria-checked', on ? 'true' : 'false');
   });
 })();
 
@@ -4521,8 +4907,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   }
 
   overlay.querySelectorAll('.nav-ov-link,.nav-ov-cta').forEach(function(a){
-    a.addEventListener('click', function(){
+    a.addEventListener('click', function(e){
       var href = this.getAttribute('href') || '';
+      if(href === '#about' && window.__xsAboutArrive){
+        e.preventDefault();
+        close();
+        window.__xsAboutArrive();
+        return;
+      }
       close();
       // Navigate to the target after the menu's scroll-lock is released.
       requestAnimationFrame(function(){
