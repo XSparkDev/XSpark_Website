@@ -120,6 +120,8 @@ body{
   display:inline-flex;align-items:center;justify-content:center;
   line-height:1;
 }
+.nav-mode-controls{display:flex;align-items:center;order:3;gap:10px;position:relative}
+.nav-mode-controls #mist-toggle{margin-right:0}
 #mist-toggle{order:2;margin-right:-14px}
 #theme-toggle{order:3}
 #ham{order:4}
@@ -894,7 +896,7 @@ section {scroll-margin-top: 90px; max-width:100%;}
   .contact-card{width:100%}
   .panel-form-inner .f-row, .chat-form .f-row{grid-template-columns:1fr}
   .f-cert-logos{justify-content:flex-start;align-items:center}
-  .logo-track{padding-left:24px}
+  .logo-belt .logo-track{--belt-pad:24px}
   .logo-belt::before{width:40px}
 }
 
@@ -942,10 +944,43 @@ section {scroll-margin-top: 90px; max-width:100%;}
     padding:calc(var(--logo-inset) + env(safe-area-inset-top,0px)) var(--logo-inset) 0 var(--logo-inset);
     gap:12px;
   }
-  .logo img{height:64px !important;width:90.6px !important;margin-top:-9.5px !important;margin-left:-27.5px;flex-shrink:0;transform:scale(2.5);transform-origin:left center}
-  /* Light mode: theme button + mist switch sit together as a right-aligned pair (10px gap) */
+  .logo img{height:64px !important;width:90.6px !important;margin-top:-9.5px !important;margin-left:-27.5px;flex-shrink:0;transform:scale(2.5);transform-origin:left center;position:relative;top:11px}
+  @media(max-width:360px){.logo img{top:12px}}
+  /* Right-hand controls keep their positions; one outer outline wraps the pair in light mode */
+  .nav-mode-controls{margin-left:auto;isolation:isolate;--th:27px;--tw:43px;--mb:38px;--gap:10px;--pad:4px}
+  .nav-mode-controls .theme-toggle{margin-left:0}
+  @keyframes mist-enter{from{opacity:0}to{opacity:1}}
+  @keyframes mist-leave{from{opacity:1}to{opacity:0}}
+  .nav-mode-controls #mist-toggle{display:inline-flex;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility 0s linear .25s}
+  html[data-theme="light"] .nav-mode-controls #mist-toggle{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .25s ease,visibility 0s}
   html[data-theme="light"] #mist-toggle{margin-left:auto;margin-right:-2px}
+  html[data-theme="light"] .nav-mode-controls #mist-toggle{margin-left:0;margin-right:0}
   html[data-theme="light"] #theme-toggle{margin-left:0}
+  html[data-theme="light"] .nav-mode-controls{--plate-fill:rgba(74,120,168,.42);--plate-border:rgba(63,119,168,.75)}
+  .nav-mode-controls::before{content:'';position:absolute;inset:calc(var(--pad) * -1);border:0;border-radius:999px;pointer-events:none;opacity:0;z-index:-1;background:var(--plate-fill);backdrop-filter:none;-webkit-backdrop-filter:none}
+  @supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)){
+    html[data-theme="light"] .nav-mode-controls::before{
+      -webkit-mask-image:radial-gradient(circle at center,#000 calc(var(--mb)/2 - 0.5px),transparent calc(var(--mb)/2 + 0.5px)),radial-gradient(circle at right center,#000 calc(var(--th)/2 - 0.5px),transparent calc(var(--th)/2 + 0.5px)),linear-gradient(#000 0 0),radial-gradient(circle at left center,#000 calc(var(--th)/2 - 0.5px),transparent calc(var(--th)/2 + 0.5px)),linear-gradient(#000 0 0);
+      -webkit-mask-size:var(--mb) var(--mb),calc(var(--th)/2) var(--th),calc(var(--tw) - var(--th)) var(--th),calc(var(--th)/2) var(--th),100% 100%;
+      -webkit-mask-position:calc(var(--pad) + var(--tw) + var(--gap)) var(--pad),var(--pad) calc(var(--pad) + (var(--mb) - var(--th))/2),calc(var(--pad) + var(--th)/2) calc(var(--pad) + (var(--mb) - var(--th))/2),calc(var(--pad) + var(--tw) - var(--th)/2) calc(var(--pad) + (var(--mb) - var(--th))/2),0 0;
+      -webkit-mask-repeat:no-repeat;-webkit-mask-composite:xor,xor,xor,xor,source-over;
+      mask-image:radial-gradient(circle at center,#000 calc(var(--mb)/2 - 0.5px),transparent calc(var(--mb)/2 + 0.5px)),radial-gradient(circle at right center,#000 calc(var(--th)/2 - 0.5px),transparent calc(var(--th)/2 + 0.5px)),linear-gradient(#000 0 0),radial-gradient(circle at left center,#000 calc(var(--th)/2 - 0.5px),transparent calc(var(--th)/2 + 0.5px)),linear-gradient(#000 0 0);
+      mask-size:var(--mb) var(--mb),calc(var(--th)/2) var(--th),calc(var(--tw) - var(--th)) var(--th),calc(var(--th)/2) var(--th),100% 100%;
+      mask-position:calc(var(--pad) + var(--tw) + var(--gap)) var(--pad),var(--pad) calc(var(--pad) + (var(--mb) - var(--th))/2),calc(var(--pad) + var(--th)/2) calc(var(--pad) + (var(--mb) - var(--th))/2),calc(var(--pad) + var(--tw) - var(--th)/2) calc(var(--pad) + (var(--mb) - var(--th))/2),0 0;
+      mask-repeat:no-repeat;mask-composite:exclude,exclude,exclude,exclude,add;
+    }
+  }
+  html[data-theme="light"] .nav-mode-controls #theme-toggle,
+  html[data-theme="light"] .nav-mode-controls #mist-toggle{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+  html[data-theme="light"] .nav-mode-controls::before{opacity:1}
+  html.theme-switching .nav-mode-controls::before{transition:opacity .25s ease}
+  @media(prefers-reduced-motion:reduce){html.theme-switching .nav-mode-controls::before{transition:none}}
+  html[data-theme="light"] .nav-ov-desc{color:var(--muted)}
+  html[data-theme="light"] .nav-ov-link:hover .nav-ov-desc,
+  html[data-theme="light"] .nav-ov-link:focus-visible .nav-ov-desc{color:var(--fg)}
+  html[data-theme="light"] .nav-ov-logo img:not(.nav-ov-logo-light){display:none}
+  html[data-theme="light"] .nav-ov-logo img.nav-ov-logo-light{display:block}
+  .nav-ov-link .nav-ov-num{color:var(--cx)}
   .hero-content{padding:calc(var(--hdr-h,73px) + 12px) 14px 16px;gap:11px}
   .hero-left{gap:8px}
   .hero-h1{font-size:clamp(1.56rem,8.3vw,2.2rem);margin-bottom:0}
@@ -1870,6 +1905,10 @@ html[data-theme="light"] .mission-card-overlay{background:linear-gradient(to top
 html[data-theme="light"] .scroll-hint{color:rgba(12,27,39,.75)}
 /* light mode: small contrast fixes found by the pixel audit */
 html[data-theme="light"] .pillar{background:rgba(255,255,255,.8)}
+@media(min-width:561px){
+  html[data-theme="light"] .exp-in-b1,
+  html[data-theme="light"] .exp-in-b2{color:var(--fg)}
+}
 html[data-theme="light"] .mission-card-label p{color:#05607f}
 html[data-theme="light"] .fc-badge{background:#c4214a;border-color:#f3f8fb}
 html[data-theme="light"] .f-copy{color:rgba(40,60,76,.9)}
@@ -1904,11 +1943,14 @@ html[data-theme="light"] .f-copy{color:rgba(40,60,76,.9)}
   mask-image:linear-gradient(to right,transparent 0,transparent var(--label-w),#000 calc(var(--label-w) + var(--belt-fade)));
 }
 .logo-track{
-  display:flex;align-items:center;gap:clamp(24px,3.2vw,44px);
-  white-space:nowrap;animation:belt-scroll 36s linear infinite;will-change:transform;flex-shrink:0;padding-left:140px;
+  --belt-pad:140px;
+  --belt-gap:clamp(24px,3.2vw,44px);
+  --belt-loop-fix:calc((var(--belt-pad) - var(--belt-gap)) / 2);
+  display:flex;align-items:center;gap:var(--belt-gap);
+  white-space:nowrap;animation:belt-scroll 36s linear infinite;will-change:transform;flex-shrink:0;padding-left:var(--belt-pad);
 }
 .logo-belt:hover .logo-track{animation-play-state:paused}
-@keyframes belt-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes belt-scroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% + var(--belt-loop-fix, 0px)))}}
 .logo-slot{flex:0 0 auto;width:110px;height:46px;display:flex;align-items:center;justify-content:center;}
 .logo-belt img{width:auto;height:auto;max-width:100%;max-height:34px;object-fit:contain;object-position:center;filter:grayscale(100%);mix-blend-mode:multiply;opacity:.8;transition:filter .3s,opacity .3s,transform .3s;display:block;}
 .logo-slot:hover img,.logo-belt img:hover{filter:grayscale(0%);opacity:1;}
@@ -1959,7 +2001,7 @@ html[data-theme="light"] #floating-iso img{filter:none;opacity:.7}
 body.chat-open #floating-iso{opacity:0;visibility:hidden;transition:opacity .12s ease,visibility 0s linear .12s}
 @media(max-width:768px){
   .logo-belt{visibility:visible !important}
-  .logo-track{gap:20px;padding-left:24px}
+  .logo-track{--belt-gap:20px}
   .logo-viewport{--belt-fade:40px}
   .logo-belt::before{width:40px}.logo-belt::after{width:60px}
   .logo-slot{height:40px}
@@ -1971,7 +2013,7 @@ body.chat-open #floating-iso{opacity:0;visibility:hidden;transition:opacity .12s
 }
 @media(max-width:560px){
   .logo-belt{height:76px}
-  .logo-track{gap:16px;padding-left:16px}
+  .logo-belt .logo-track{--belt-pad:16px;--belt-gap:16px}
   #floating-iso{width:92px;height:49px;--iso-icon:70px;right:12px}
 }
 /* Mobile-only scale trims so zoomed logos keep clear of their neighbours */
@@ -2180,8 +2222,8 @@ html{scroll-padding-top:100px}
 <!-- ═══════════════════════════════ NAV ════════════════════════════ -->
 <nav class="nav" id="nav" role="navigation" aria-label="Main">
   <a href="#" class="logo" aria-label="X Spark home">
-    <img class="logo-on-dark" src="X Spark Logo light.png" alt="X Spark" height="150" style="height:150px;width:auto;object-fit:contain;margin-top:-10px">
-    <img class="logo-on-light" src="images/logo-on-light.png" alt="X Spark" height="150" style="height:150px;width:auto;object-fit:contain;margin-top:-10px">
+    <img class="logo-on-dark" src="X Spark Logo light.png" alt="X Spark" height="150" style="height:150px;width:auto;object-fit:contain;margin-top:-10px" decoding="async">
+    <img class="logo-on-light" src="images/xspark-logo-light-tagline.png" alt="X Spark" height="150" style="height:150px;width:auto;object-fit:contain;margin-top:-10px" decoding="async">
   </a>
   <ul class="nav-links" role="list">
     <li><a href="#" class="active">Home</a></li>
@@ -2191,6 +2233,7 @@ html{scroll-padding-top:100px}
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#contact" class="nav-btn">Build With Us</a>
+  <div class="nav-mode-controls">
   <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to light mode">
     <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
@@ -2198,6 +2241,7 @@ html{scroll-padding-top:100px}
   <button type="button" class="theme-toggle mist-toggle" id="mist-toggle" role="switch" aria-checked="false" aria-label="Reduce overlay" title="Reduce overlay">
     <span class="mist-knob" aria-hidden="true"></span>
   </button>
+  </div>
   <button class="hamburger" id="ham" aria-label="Open menu" aria-expanded="false">
     <span class="ham-wrap" aria-hidden="true">
       <span class="ham-bar"></span>
@@ -2214,6 +2258,7 @@ html{scroll-padding-top:100px}
   <div class="nav-ov-top">
     <a href="#" class="nav-ov-logo" aria-label="X Spark home" tabindex="-1">
       <img src="X Spark Logo light.png" alt="X Spark">
+      <img class="nav-ov-logo-light" src="images/xspark-logo-light-tagline.png" alt="X Spark" hidden>
     </a>
     <button class="nav-ov-close" id="nav-ov-close" aria-label="Close menu" tabindex="-1">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -2504,19 +2549,19 @@ html{scroll-padding-top:100px}
         <div class="news-ticker" role="region" aria-label="Latest news" tabindex="0">
           <div class="news-ticker-track">
             <div class="news-ticker-set">
-              <span class="news-ticker-item">X Spark Returns to Silicon Valley</span>
+              <span class="news-ticker-item">X Spark establishes a relationship with the Johannesburg Stock Exchange (JSE)</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
-              <span class="news-ticker-item">X Spark Establishes a New Relationship with the Johannesburg Stock Exchange (JSE)</span>
+              <span class="news-ticker-item">X Spark impresses edge growth</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
-              <span class="news-ticker-item">X Spark Impresses Edge Growth</span>
+              <span class="news-ticker-item">X Spark returns to Silicon Valley</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
             </div>
             <div class="news-ticker-set" aria-hidden="true">
-              <span class="news-ticker-item">X Spark Returns to Silicon Valley</span>
+              <span class="news-ticker-item">X Spark establishes a relationship with the Johannesburg Stock Exchange (JSE)</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
-              <span class="news-ticker-item">X Spark Establishes a New Relationship with the Johannesburg Stock Exchange (JSE)</span>
+              <span class="news-ticker-item">X Spark impresses edge growth</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
-              <span class="news-ticker-item">X Spark Impresses Edge Growth</span>
+              <span class="news-ticker-item">X Spark returns to Silicon Valley</span>
               <span class="news-ticker-dot" aria-hidden="true"></span>
             </div>
           </div>
@@ -2877,7 +2922,7 @@ html{scroll-padding-top:100px}
     <div>
       <a href="#" class="f-logo" aria-label="X Spark home">
         <img class="logo-on-dark" src="X Spark Logo light.png" alt="X Spark" height="128" style="height:128px;width:auto;object-fit:contain">
-        <img class="logo-on-light" src="images/logo-on-light.png" alt="X Spark" height="128" style="height:128px;width:auto;object-fit:contain">
+        <img class="logo-on-light" src="images/xspark-logo-light-tagline.png" alt="X Spark" height="128" style="height:128px;width:auto;object-fit:contain">
       </a>
     </div>
     <nav class="f-nav" aria-label="Footer navigation">
