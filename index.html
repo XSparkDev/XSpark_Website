@@ -1011,6 +1011,9 @@ section {scroll-margin-top: 90px; max-width:100%;}
   #float-chat{transition:opacity .2s ease,visibility 0s linear .2s}
   #float-chat.mob-hidden{opacity:0;visibility:hidden;pointer-events:none}
   #float-chat.mob-hidden .fc-fab{pointer-events:none}
+  /* Keep the launcher from floating above the open full-screen menu on mobile */
+  body:has(.nav-overlay.is-open) #float-chat{opacity:0;visibility:hidden;pointer-events:none}
+  body:has(.nav-overlay.is-open) #float-chat .fc-fab{pointer-events:none}
 }
 
 @media(max-width:360px){
